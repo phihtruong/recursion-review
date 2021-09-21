@@ -5,59 +5,60 @@
 
 var stringifyJSON = function(obj) {
   var result = '';
-  (function innerFunc (obj) {
+  function innerFunc (obj) {
+    var innerResult = '';
     if (Array.isArray(obj)) {
       if (obj.length === 0) {
-        result += '[]';
+        innerResult += '[]';
       }
       for (var i = 0; i < obj.length; i++) {
         if (i === 0) {
-          result += '[';
+          innerResult += '[';
         }
-        innerFunc(obj[i]);
+        innerResult += innerFunc(obj[i]);
         if (i !== obj.length - 1) {
-          result += ',';
+          innerResult += ',';
         }
         if (i === obj.length - 1) {
-          result += ']';
+          innerResult += ']';
         }
       }
     } else if (typeof obj === 'number') {
-      result += obj;
+      innerResult += obj;
     } else if (obj === null) {
-      result += 'null';
+      innerResult += 'null';
     } else if (typeof obj === 'boolean') {
-      result += obj;
+      innerResult += obj;
     } else if (typeof obj === 'string') {
-      result += '"' + obj + '"';
-    } else if (typeof obj === 'function') {
-      //do nothing
+      innerResult += '"' + obj + '"';
+    } else if (typeof obj === 'function' || typeof obj === 'undefined') {
+      innerResult += 'null';
     } else {
       if (Object.keys(obj).length === 0) {
-        result += '{}';
+        innerResult += '{}';
       } else {
-        result += '{';
         var keys = Object.keys(obj);
         for (var i = 0; i < keys.length; i++) {
-          if (i ===  keys.length - 1) {
-            result += '"' + keys[i] + '"' + ':' + innerFunc(obj[keys[i]])
+          if (i === 0) {
+            innerResult += '{'
+          }
+          if (typeof obj[keys[i]] === 'function' || typeof obj[keys[i]] === 'undefined') {
+            // do nothing;
+          } else if (keys.length === 1) {
+            innerResult += '"' + keys[i] + '"' + ':' + innerFunc(obj[keys[i]]);
+          } else if (i === 0) {
+            innerResult += '"' + keys[i] + '"' + ':' + innerFunc(obj[keys[i]]) + ',';
+          } else if (i ===  keys.length - 1) {
+            innerResult += '"' + keys[i] + '"' + ':' + innerFunc(obj[keys[i]]);
           } else {
-            result += '"' + keys[i] + '"' + ':' + innerFunc(obj[keys[i]]) + ', '
+            innerResult += '"' + keys[i] + '"' + ':' + innerFunc(obj[keys[i]]) + ',';
           }
         }
-        result += '}';
+        innerResult += '}';
       }
-
-
-
-      // else {
-      //   result += '{';
-      //   for (var key in obj) {
-      //     result += '\'' + key + '\': ' + innerFunc(obj[key])
-      //   }
-      //   result += '}';
-      // }
     }
-  })(obj);
+    return innerResult;
+  };
+  result = innerFunc(obj);
   return result;
 };
